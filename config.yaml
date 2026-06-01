@@ -1,0 +1,208 @@
+# Crypto Pump & Dump Detection Configuration
+
+# Data Collection Settings
+data_collection:
+  # Exchange settings
+  exchange: binance
+  quote_currency: USDT
+  
+  # WebSocket settings
+  websocket_timeout: 60
+  reconnect_delay: 5
+  max_reconnect_attempts: 10
+  
+  # Data fetch intervals
+  kline_intervals:
+    - 1m
+    - 5m
+    - 15m
+  
+  orderbook_depth: 20
+  orderbook_update_speed: 100ms  # 100ms or 1000ms
+  
+  # Coin filtering criteria
+  coin_filters:
+    min_market_cap: 100000      # USD
+    max_market_cap: 10000000    # USD
+    min_24h_volume: 1000000     # USD
+    max_listing_age_days: 90    # New coins only
+    exclude_stable_coins: true
+    exclude_wrapped_tokens: true
+
+# Factor Calculation Settings
+factors:
+  # Price factors
+  price:
+    velocity_windows: [1, 5, 15]  # minutes
+    volatility_window: 15         # minutes
+    breakout_window: 15           # minutes
+    rsi_period: 14
+  
+  # Volume factors
+  volume:
+    ratio_window: 60              # minutes
+    spike_threshold: 3.0          # x times average
+    large_trade_multiplier: 3.0
+  
+  # Liquidity factors
+  liquidity:
+    orderbook_depth_levels: 10
+    spread_threshold: 0.5         # percent
+    imbalance_threshold: 0.5
+  
+  # Calculation frequency
+  update_frequency:
+    price_factors: 1              # seconds
+    volume_factors: 60            # seconds
+    liquidity_factors: 5          # seconds
+    market_factors: 60            # seconds
+
+# Detection Settings
+detection:
+  # PUMP detection
+  pump:
+    enabled: true
+    confidence_threshold: 0.65
+    
+    # Factor weights
+    weights:
+      price_velocity_5m: 0.25
+      volume_spike_score: 0.30
+      buy_sell_ratio: 0.20
+      bid_ask_imbalance: 0.15
+      trade_intensity: 0.10
+    
+    # Factor thresholds
+    thresholds:
+      price_velocity_5m: 10.0     # percent
+      volume_spike_score: 0.6
+      buy_sell_ratio: 2.0
+      bid_ask_imbalance: 0.5
+      trade_intensity: 3.0
+    
+    # Mandatory conditions
+    mandatory:
+      min_price_change: 5.0       # percent
+      min_volume_spike: 0.4
+  
+  # DUMP detection
+  dump:
+    enabled: true
+    confidence_threshold: 0.65
+    
+    weights:
+      price_velocity_5m: 0.30
+      volume_spike_score: 0.25
+      buy_sell_ratio: 0.25
+      bid_ask_imbalance: 0.15
+      price_continuity: 0.05
+    
+    thresholds:
+      price_velocity_5m: -10.0    # percent (negative)
+      volume_spike_score: 0.6
+      buy_sell_ratio: 0.5
+      bid_ask_imbalance: -0.5
+      price_continuity: 0.3
+    
+    mandatory:
+      min_price_drop: -5.0        # percent (negative)
+      min_volume_spike: 0.4
+  
+  # Event tracking
+  event_tracking:
+    max_event_duration: 1800      # seconds (30 minutes)
+    retracement_threshold: 0.5    # 50% retracement ends event
+    low_confidence_timeout: 180   # seconds
+
+# Alert Settings
+alerts:
+  # Console alerts
+  console:
+    enabled: true
+    color_output: true
+  
+  # Telegram alerts
+  telegram:
+    enabled: false
+    rate_limit: 5                 # max alerts per minute
+    include_charts: false
+  
+  # Webhook alerts
+  webhook:
+    enabled: false
+    url: ""
+    timeout: 5
+  
+  # Alert levels
+  levels:
+    critical: 0.85
+    high: 0.75
+    medium: 0.65
+    low: 0.50
+
+# Storage Settings
+storage:
+  # PostgreSQL
+  postgres:
+    pool_size: 10
+    max_overflow: 20
+    pool_timeout: 30
+    echo: false
+  
+  # Redis
+  redis:
+    max_connections: 50
+    socket_timeout: 5
+    socket_connect_timeout: 5
+  
+  # Data retention
+  retention:
+    tickers: 7                    # days
+    klines_1m: 30                 # days
+    klines_5m: 90                 # days
+    trades: 30                    # days
+    orderbook: 7                  # days
+    factors: 90                   # days
+    events: 365                   # days (1 year)
+
+# Performance Settings
+performance:
+  # Async settings
+  max_workers: 10
+  batch_size: 100
+  
+  # Database batch writes
+  db_batch_size: 1000
+  db_batch_interval: 5            # seconds
+  
+  # Cache settings
+  cache_ttl:
+    prices: 60                    # seconds
+    klines: 3600
+    factors: 60
+    orderbook: 10
+
+# Monitoring & Logging
+monitoring:
+  # Prometheus metrics
+  prometheus:
+    enabled: true
+    port: 9090
+  
+  # Logging
+  logging:
+    level: INFO
+    format: "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+    rotation: "100 MB"
+    retention: "30 days"
+    
+  # Health checks
+  health_check:
+    enabled: true
+    interval: 60                  # seconds
+    
+  # Performance metrics
+  metrics:
+    track_latency: true
+    track_throughput: true
+    track_errors: true
