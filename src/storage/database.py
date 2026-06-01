@@ -3,7 +3,7 @@ Database connection and schema management
 Handles PostgreSQL and Redis connections
 """
 
-from sqlalchemy import create_engine, Column, Integer, String, DECIMAL, TIMESTAMP, BigInteger, Index, UniqueConstraint
+from sqlalchemy import create_engine, Column, Integer, String, DECIMAL, TIMESTAMP, BigInteger, Index, UniqueConstraint, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.postgresql import JSONB
@@ -39,7 +39,7 @@ class Kline(Base):
     trades = Column(Integer)
     taker_buy_volume = Column(DECIMAL(20, 8))
     taker_buy_quote_volume = Column(DECIMAL(20, 8))
-    created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP')
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     
     __table_args__ = (
         UniqueConstraint('symbol', 'interval', 'open_time', name='uq_kline'),
@@ -59,7 +59,7 @@ class Ticker(Base):
     volume = Column(DECIMAL(20, 8))
     quote_volume = Column(DECIMAL(20, 8))
     timestamp = Column(TIMESTAMP, nullable=False, index=True)
-    created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP')
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     
     __table_args__ = (
         Index('idx_tickers_symbol_time', 'symbol', 'timestamp'),
@@ -79,7 +79,7 @@ class TradeAggregated(Base):
     total_trades = Column(Integer)
     large_trades = Column(Integer)
     avg_price = Column(DECIMAL(20, 8))
-    created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP')
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     
     __table_args__ = (
         UniqueConstraint('symbol', 'minute_time', name='uq_trade_agg'),
@@ -101,7 +101,7 @@ class OrderbookSnapshot(Base):
     spread_percent = Column(DECIMAL(10, 4))
     top_bid_price = Column(DECIMAL(20, 8))
     top_ask_price = Column(DECIMAL(20, 8))
-    created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP')
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     
     __table_args__ = (
         Index('idx_orderbook_symbol_time', 'symbol', 'timestamp'),
@@ -142,7 +142,7 @@ class FactorValue(Base):
     price_continuity = Column(DECIMAL(10, 4))
     rsi = Column(DECIMAL(10, 4))
     
-    created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP')
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     
     __table_args__ = (
         UniqueConstraint('symbol', 'timestamp', name='uq_factors'),
@@ -166,7 +166,7 @@ class DetectionEvent(Base):
     peak_price = Column(DECIMAL(20, 8))
     max_change_percent = Column(DECIMAL(10, 4))
     status = Column(String(20), default='ACTIVE', index=True)
-    created_at = Column(TIMESTAMP, server_default='CURRENT_TIMESTAMP')
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
     
     __table_args__ = (
         Index('idx_detection_symbol_time', 'symbol', 'detection_time'),
